@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block head %}
+    <title>Add Film</title>
+{% endblock %}
+{% block body %}
+    <div class="add-film">
+        <form class="site-form" action="{% url 'profile:film to list' id=list_name.id %}" method="post"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <select class="js-example-basic-single" name="film">
+                {% for movie in movies %}
+                    <option value="{{ movie.id }}">{{ movie.title }}</option>
+
+                {% endfor %}
+            </select>
+            <input type="submit" class="btn btn-outline-light" value="Add Film">
+
+        </form>
+    </div>
+{% endblock %}
+<script>
+    $(document).ready(function () {
+        $('.js-example-basic-single').select2();
+    });
+</script>

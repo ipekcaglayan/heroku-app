@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block head %}
+    <title>Sign In</title>
+    <link rel="stylesheet" href="{% static 'login.css' %}?v1.1">
+{% endblock %}
+{% block body %}
+
+    <div class="container">
+        <form method="post" class="login">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="btn btn-outline-light" style="margin-left: 380px; width: 7%; font-size: 10px">
+                Login
+            </button>
+        </form>
+        <br>
+        <p style="display: inline; margin-left: 385px">Don’t have an account?</p>
+        <a href="{% url 'accounts:signup' %}"
+           style="margin-left: 20px;display: inline;cursor: pointer">
+            <i style="color: #777373" class="fas fa-user-plus"></i>
+
+        </a>
+
+
+    </div>
+
+
+{% endblock %}

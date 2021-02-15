@@ -1,0 +1,1 @@
+web: gunicorn filmdiary.wsgi --log-file -

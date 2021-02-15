@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <title>{{ review.film.title }} review by {{ review.author }}</title>
+{% endblock %}
+
+{% block body %}
+    <div id="cont" class="container" style="margin-top: 285px; margin-bottom: 200px">
+        <div class="row">
+            <div class="col-md-4" style="display: inline">
+                <a href="{% url 'films:detail' id=review.film.id %}"><img style="max-height: 540px"
+                                                                          src="{{ review.film.poster.url }}" alt=""></a>
+            </div>
+            <div class="col-md-8" style="display: inline">
+                <p style="margin-left: 50px" class="text-muted"> reviewed by
+                    {% if user.username == review.author.username %}
+                        <a href="{% url 'profile:profile' city='watched' username=review.author.username %}"><i>{{ review.author.username }}</i></a>
+                    {% else %}
+                        <a href="{% url 'other_profile' username=review.author.username %}">{{ review.author.username }}</a>
+                    {% endif %}
+                    <img
+                            style="width: 5%; object-fit: cover; border-radius: 50%; margin-left: 10px"
+                            src="{{ review.author.profile.picture.url }}" alt="">
+
+                </p>
+                <hr align="left" style="border: 1px solid #3f3f3f; width: 100%; margin-left: 50px ">
+
+                <a href="{% url 'films:detail' id=review.film.id %}"><h1
+                        style="margin-left: 50px; display: inline">{{ review.film.title }}</h1>
+                    <h3 style="display: inline; margin-left: 10px"
+                        class="text-muted">{{ review.film.year }}</h3>
+                </a> <br> <br>
+                <h7 style="margin-left: 50px"><strong>{% if review.rating %}
+                    <i style="margin-right:10px; color: #fddb3a " class="fas fa-star"></i>{{ review.rating }}
+                {% endif %}</strong></h7>
+
+                <p style="margin-left: 50px;margin-top: 10px" class="text-muted"> reviewed {{ review.date }}</p>
+                <p style="margin-left: 50px">{{ review.body }}</p>
+
+                {% if user.is_authenticated %}
+                    <div class="like-btn" style="display: inline;margin-left: 50px">
+                        <div id="review-like"
+                                {% if liked %}
+                             style="color: #7c071b;display: inline;cursor: pointer"
+                                {% else %}
+                             style="color: #726f6f;display:inline; cursor: pointer"
+                                {% endif %}
+                             onclick="ReviewLike({{ review.id }});"><i
+                                class="fas fa-heart fa-2x"></i></div>
+                    </div>
+                    {% if user == review.author %}
+                        <div style="margin-left: 10px; cursor: pointer; display: inline"
+                             onclick="DeleteReview({{ review.id }});"><i
+                                class="fas fa-trash-alt fa-2x"></i></div>
+                        <div style="margin-left: 10px; display: inline; cursor: pointer"
+                             onclick="EditReview();"><i class="fas fa-edit fa-2x"></i></div>
+                        <form id="edit-review-form" style="display: none; margin-left: 50px" class="add-review-form"
+                              action="{% url 'profile:edit review' id=review.id %}" method="post"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <input onclick="Submitted()" type="submit" class="btn-outline-primary"
+                                   value="Edit Review">
+
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'profile:like review ajax' %}" style="color: #726f6f; margin-left: 50px"><i
+                            class=" fas fa-heart fa-2x"></i></a>
+
+                {% endif %}
+
+
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        function DeleteReview(review_id) {
+
+            bootbox.confirm({
+                title: "Delete Review?",
+                message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+                buttons: {
+                    cancel: {
+                        label: '<i class="fa fa-times"></i> Cancel'
+                    },
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'profile:delete review ajax' %}",
+                            data: {
+                                review_id: review_id,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data['success']) {
+
+                                    $("#cont").remove()
+
+
+                                }
+
+
+                            }
+                        });
+                    } else {
+                        bootbox.alert({
+                            message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                        });
+                    }
+                }
+            });
+
+        }
+
+        function EditReview() {
+            $('#edit-review-form').css('display', 'block');
+
+        }
+
+        function Submitted() {
+            $('#edit-review-form').css('display', 'none');
+        }
+
+    </script>
+    <script>
+        function ReviewLike(review_id) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:like review ajax' %}",
+                data: {
+                    review_id: review_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        $("#review-like").css('color', '#7c071b')
+                        $("#like-text").html("Liked")
+
+
+                    } else {
+                        $("#review-like").css('color', '#726f6f')
+                        $("#like-text").html("Like")
+
+
+                    }
+
+
+                }
+            });
+        }
+    </script>
+
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <title style="color: white">Lists</title>
+{% endblock %}
+{% block body %}
+    <div class="container" style=" width: 750px;margin-top: 250px; margin-left: 520px; margin-bottom: 200px">
+    <h2 style="text-align: center"> Lists</h2>
+        <hr style="color: #717677; border: 1px solid">
+        {% for list,name,date  in list_films %}
+
+            <div id="card-{{ name.id }}" class="card mb-3" style="width: 50rem; border-color: #222">
+                <div class="card-body" style="background-color: #222;">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><a href="{% url 'profile:list detail' id=name.id %}">{{ name }}</a> <a href="#"
+                                                                                                      style="color: #828282; margin-left: 10px"
+                                                                                                      onclick="DeleteList({{ name.id }});"><i
+                                    class="fas fa-trash-alt"></i></a></p>
+                            <div class="row no-gutters" style="background-color: #0b0b0b">
+                                {% if list %}
+                                    {% for film_list in list %}
+
+                                        <div class="col-md-4">
+                                            <img src="{{ film_list.film.poster.url }}" class="card-img" alt="...">
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <p style="margin-left: 20px">
+                                Created: <span class="date"><span
+                                    class="icon-calendar"></span> {{ date }}</span>
+                            </p>
+                            <a href="{% url 'profile:list detail' id=name.id %}"><p
+                                    style="margin-left: 20px">{{ name.body }}</p></a>
+                            <p style="margin-left: 20px">created by <i>{{ name.user.username }}</i> <img
+                                    src="{{ name.user.profile.picture.url }}"
+                                    style="width: 5%;border-radius: 100%; margin-left: 5px" alt="">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr id="hr-{{ name.id }}" style="color: #717677; border: 1px solid">
+
+
+
+        {% endfor %}
+    </div>
+
+    <script>
+        function DeleteList(name_id) {
+
+            bootbox.confirm({
+            title: "Delete List?",
+            message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+            buttons: {
+                cancel: {
+                    label: '<i class="fa fa-times"></i> Cancel'
+                },
+                confirm: {
+                    label: '<i class="fa fa-check"></i> Confirm'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    console.log("calisti");
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'profile:delete_list_ajax' %}",
+                        data: {
+                            name_id: name_id,
+                            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                        },
+                        datatype: 'json',
+                        success: function (data) {
+                            if (data['success']) {
+
+                                $("#card-" + name_id).remove()
+                                $("#hr-" + name_id).remove()
+
+
+                            }
+
+
+                        }
+                    });
+                } else {
+                    bootbox.alert({
+                        message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                    });
+                }
+            }
+        });
+
+        }
+    </script>
+
+{% endblock %}

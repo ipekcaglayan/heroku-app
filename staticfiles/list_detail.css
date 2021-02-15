@@ -1,0 +1,68 @@
+/*
+flip card
+*/
+.card-flip > div {
+    backface-visibility: hidden;
+    transition: transform 300ms;
+    transition-timing-function: linear;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    display: flex;
+}
+
+.card-front {
+    transform: rotateY(0deg);
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    position: absolute;
+    top: 0;
+}
+
+.card-flip:hover .card-front {
+    transform: rotateY(-180deg);
+}
+
+
+h2 {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 40px;
+}
+
+.card-flip:hover .card-back {
+    transform: rotateY(0deg);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    background-color: #333333;
+    color: #999999;
+    padding: 12px;
+    font-size: 25px;
+}
+
+.select2-container--default .select2-selection--single {
+    border: none;
+}
+
+.select2-dropdown {
+    background-color: #333333;
+}
+
+.select2-container--open .select2-dropdown--below {
+    border: none;
+    margin-top: 20px;
+}
+
+.select2-container--open .select2-dropdown--above {
+    border: none;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected]{
+    background-color: #222222;
+}
+.select2-container--default .select2-results__option[aria-selected=true]{
+    background-color: #bac964;
+    color: black;
+
+}

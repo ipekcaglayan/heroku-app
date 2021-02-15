@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>genres</title>
+{% endblock %}
+
+{% block body %}
+    <div class="col-md-2">
+        <form>
+            {% csrf_token %}
+            <input type="text" name="keyword" class="input-sm" maxlength="65" autocomplete="off"
+                   placeholder="Search">
+
+            <button class="btn btn-sm btn-success" type="submit">Search</button>
+
+        </form>
+    </div>
+    <div class="all-genres">
+        {% for genre in genres %}
+            <div class="genre">
+                <li>  <a href="{% url 'genre_detail' id=genre.id %}" ><p>{{genre.name}}</p></a></li>
+
+            </div>
+
+        {% endfor %}
+
+
+    </div>
+{% endblock %}

@@ -1,0 +1,614 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block head %}
+    <title>{{ user.username }}'s profile</title>
+    <link rel="stylesheet" href="{% static 'my_profile.css' %}?v1.1">
+    <link rel="stylesheet" href="{% static 'watchlist.css' %}?v1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Merriweather+Sans&family=Mukta:wght@300&family=Ubuntu:wght@700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+
+    <div id="cont1" class="container" style="margin-top: 150px">
+        <div class="card mb-3"
+             style="max-width: 540px; background-color: #fff0; border: 1px rgba(0, 0, 0, .125)">
+            <div class="row no-gutters">
+                <div class="col-md-4">
+                    <div class="profile-picture">
+                        <img style="border-radius: 50%; height: 175px; width:175px; object-fit: cover; margin-top: 20px"
+                             src="{{ user.profile.picture.url }}" alt="">
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 style="color: #e8e4e1;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 36px;
+    padding-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    margin-left: 30px;" class="card-title">{{ user.username }}</h5>
+                        <form style="margin-left: 40px" class="upload-form"
+                              action="{% url 'profile:upload picture' %}" method="post"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ pp_form|crispy }}
+                            <input type="submit" class="btn-outline-primary"
+                                   value="Upload">
+
+                        </form>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="row" style="position: absolute; left: 1200px; top: 180px">
+            <div class="card mb-3" style="max-width: 7rem; display: inline;background-color: #222">
+
+                <div class="card-body">
+                    <h5 class="card-title" style="text-align: center">{{ seen_film_number }}</h5>
+                    <p class="card-text">Films</p>
+                </div>
+            </div>
+            <div class="card mb-3" style="max-width: 7rem; display: inline;background-color: #222">
+                <div class="card-body">
+                    <h5 class="card-title" style="text-align: center">{{ review_number }}</h5>
+                    <p class="card-text">Reviews</p>
+                </div>
+            </div>
+            <div class="card mb-3" style="max-width: 7rem; display: inline; background-color: #222">
+
+                <div class="card-body">
+                    <h5 class="card-title" style="text-align: center">{{ list_number }}</h5>
+                    <p class="card-text">Lists</p>
+                </div>
+            </div>
+        </div>
+        <br>
+        <hr style="border: 1px solid; margin-bottom: -2px ">
+        <ul class="nav" style="width: 750px; margin-left: 200px">
+            <li class="nav-item" style="width: 150px">
+                <button style="font-size: 18px; margin-left: 23px" class="w3-bar-item w3-button"
+                        onclick="openCity('watched')">Watched
+                </button>
+            </li>
+            <li class="nav-item" style="width: 150px">
+                <button style="font-size: 18px; margin-left: 23px" class="w3-bar-item w3-button"
+                        onclick="openCity('reviews')">Reviews
+                </button>
+
+            </li>
+            <li class="nav-item" style="width: 150px">
+                <button style="font-size: 18px; margin-left: 23px" class="w3-bar-item w3-button"
+                        onclick="openCity('watchlist')">Watchlist
+                </button>
+            </li>
+            <li class="nav-item" style="width: 150px">
+                <button style="font-size: 18px; margin-left: 25px" class="w3-bar-item w3-button"
+                        onclick="openCity('lists')">Lists
+                </button>
+            </li>
+            <li class="nav-item" style="width: 150px">
+                <button style="font-size: 18px; margin-left: 10px" class="w3-bar-item w3-button"
+                        onclick="openCity('likes')">Likes
+                </button>
+            </li>
+
+        </ul>
+        <hr style="border: 1px solid; margin-top: -2px ">
+
+    </div>
+
+    <div class="container" style="margin-top: 150px; margin-bottom: 200px">
+        <div id="watched" class="city">
+            <h3 style="text-align: left ;font-size: 36px;font-family: 'Permanent Marker', cursive; margin-left: 390px"> Watched Films</h3>
+            <hr>
+            <div class="row">
+                {% for seen in seen_films %}
+                    <div class="card mb-3 ml-3" style="max-width: 170px; background-color: #000000">
+                        <div class="row no-gutters">
+                            <a href="{% url 'films:detail' id=seen.film.id %}"><img
+                                    src="{{ seen.film.poster.url }}"
+                                    class="card-img" alt="..."></a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div id="reviews" class="city" style="display:none">
+            <h1 style="font-family: 'Permanent Marker', cursive; text-align: center; margin-bottom: 50px; font-size: 36px">
+                Reviews</h1>
+            {% for review in reviews %}
+                <div id="review-card-{{ review.id }}" class="card-body mb-5" style="background-color: #2f2d2d;">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="row no-gutters">
+                                <a href="{% url 'films:detail' id=review.film.id %}"><img
+                                        src="{{ review.film.poster.url }}"
+                                        class="card-img" style=""
+                                        alt="..."></a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-9" style="margin-top: 50px;">
+                            <p>
+                                Last Update: <span class="date"><span
+                                    class="icon-calendar"></span> {{ review.date }}</span>
+
+                            </p>
+                            <a href="{% url 'profile:detail' id=review.id %}"
+                               style="color: #807575">{{ review.body|truncatechars:280 }}</a>
+                            <p>
+                            <p>created by <i>{{ review.author.username }}</i> <img
+                                    src="{{ review.author.profile.picture.url }}"
+                                    style="height: 40px;width: 40px; object-fit: cover;border-radius: 100%; margin-left: 5px"
+                                    alt="">
+
+                            </p>
+                            <p class="delete-icon">
+                                <a href="#"
+                                   onclick="DeleteReview({{ review.id }});"><i
+                                        class="fas fa-trash-alt fa-2x"></i></a>
+                                <a style="margin-left: 10px; display: inline"
+                                   href="{% url 'profile:detail' id=review.id %}"
+                                ><i class="fas fa-edit fa-2x"></i></a>
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+        <div id="watchlist" class="city" style="display:none">
+            <h2 style="text-align: center;font-size: 36px;font-family: 'Permanent Marker', cursive">Watchlist</h2> <br>
+            <br>
+            <div class="row">
+
+                {% for movie in movies %}
+
+
+                    <div id="movie-card-{{ movie.film.id }}" class="col-md-3" style="margin-bottom: 20px">
+                        <a href="{% url 'films:detail' id=movie.film.id %}">
+                            <div class="card card-flip h-100"
+                                 style="border: #00CCFF; background-color: #0b0b0b">
+                                <div class="card-front " style="background-color: #0b0b0b">
+                                    <div class="card-body">
+                                        <img src="{{ movie.film.poster.url }}" alt="" style="max-width: 210px">
+                                    </div>
+                                </div>
+                                <div class="card-back" style="background-color: #0b0b0b">
+                                    <div class="card-body" style="background-color: #0b0b0b">
+                                        <h3 class="card-title">{{ movie.film.title }}</h3>
+                                        <p style="margin-bottom: 25px"
+                                           class="card-text">{{ movie.film.body|truncatechars:180 }}</p>
+                                        <a style="margin-left: 75px; margin-top: 40px; margin-bottom: 20px" href="#"
+                                           onclick="RemoveWatchlist({{ movie.film.id }})">
+                                            <i class="fas fa-eye fa-3x"></i>
+                                        </a>
+                                        <p class="text-muted" style="margin-left: 78px;">
+                                            Watch</p>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+
+
+                {% endfor %}
+
+            </div>
+        </div>
+        <div id="lists" class="city" style="display:none">
+
+            {#            <div id="create-list-form" style="display: none; width: 500px; margin-left: 180px; margin-top: -140px">#}
+            {#                <div class="card" style="width: 50rem;background-color: #0b0b0b">#}
+            {#                    <div class="card-body">#}
+            {#                        <a href="#" onclick="Created()"><i class="fas fa-times"></i></a>#}
+            {#                        <form#}
+            {#                                action="{% url 'profile:create list' %}" method="post"#}
+            {#                                enctype="multipart/form-data">#}
+            {#                            {% csrf_token %}#}
+            {#                            {{ form|crispy }}#}
+            {#                            <input onclick="Created()" type="submit" class="btn-outline-primary"#}
+            {#                                   value="Create List">#}
+            {##}
+            {#                        </form>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
+
+            <!-- Trigger/Open The Modal -->
+            <button style="background-color: transparent; border-color: transparent; display: inline" id="myBtn"><i
+                    class="fas fa-plus fa-2x" style="display: inline; color: #FFFFFF66"></i> <h6
+                    style="display: inline; font-size: 25px; margin-right: 350px; color: #FFFFFF66">
+                Create List</h6>
+            </button>
+            <h2 id="lists-text" style=" display:inline;font-size: 36px;font-family: 'Permanent Marker', cursive;
+"> Lists</h2>
+
+            <!-- The Modal -->
+            <div id="myModal" class="modal" style="padding-top: 450px;padding-left: 480px">
+
+                <!-- Modal content -->
+
+                <span class="close">&times;</span>
+                <div id="create-list-form"
+                     style="width: 500px; margin-left: 180px; margin-top: -140px">
+                    <form
+                            action="{% url 'profile:create list' %}" method="post"
+                            enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <input type="submit" class="btn-outline-primary"
+                               value="Create List">
+
+                    </form>
+                </div>
+
+
+            </div>
+            <div id="films-cont" class="container">
+                <hr style="color: #717677; border: 1px solid">
+                {% for list,name,date  in list_films %}
+
+                    <div id="card-{{ name.id }}" class="card mb-3" style="width: 50rem; border-color: #222">
+                        <div class="card-body" style="background-color: #222;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><a href="{% url 'profile:list detail' id=name.id %}">{{ name }}</a>
+                                        <a
+                                                href="javascript:void();"
+                                                style="color: #828282; margin-left: 10px"
+                                                onclick="DeleteList({{ name.id }});"><i
+                                                class="fas fa-trash-alt"></i></a></p>
+                                    <div class="row no-gutters" style="background-color: #0b0b0b">
+                                        {% if list %}
+                                            {% for film_list in list %}
+
+                                                <div class="col-md-4">
+                                                    <img src="{{ film_list.film.poster.url }}" class="card-img"
+                                                         alt="...">
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <p style="margin-left: 20px">
+                                        Created: <span class="date"><span
+                                            class="icon-calendar"></span> {{ date }}</span>
+                                    </p>
+                                    <a href="{% url 'profile:list detail' id=name.id %}"><p
+                                            style="margin-left: 20px">{{ name.body }}</p></a>
+                                    <p style="margin-left: 20px">created by <i>{{ name.user.username }}</i> <img
+                                            src="{{ name.user.profile.picture.url }}"
+                                            style="height: 35px;width: 35px; object-fit: cover;border-radius: 100%; margin-left: 5px"
+                                            alt="">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr id="hr-{{ name.id }}" style="color: #717677; border: 1px solid">
+
+
+
+                {% endfor %}
+            </div>
+
+
+        </div>
+        <div id="likes" class="city" style="display:none">
+            <h2 style=";font-size: 36px;font-family: 'Permanent Marker', cursive; margin-left: 490px"> Likes</h2>
+            <hr style="color: #717677; border: 1px solid; margin-bottom: 80px">
+            <div class="row">
+                <div class="col-md-4" style="display: inline">
+                    <p style="text-align: center">Films</p>
+                    <hr style="border: #3f3f3f 1px solid">
+                    <div class="row">
+                        {% for liked_film in liked_films %}
+
+                            <div id="liked-movie-{{ liked_film.film.id }}" class="col-md-4">
+                                <a href="{% url 'films:detail' id=liked_film.film.id %}">
+                                    <img style="margin-bottom: 5px; max-width: 100px"
+                                         src="{{ liked_film.film.poster.url }}" alt="">
+                                </a>
+                            </div>
+
+
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-4" style="display: inline">
+                    <p style="text-align: center">Reviews</p>
+                    <hr style="border: #3f3f3f 1px solid">
+                    {% for review_like in liked_reviews %}
+                        <div id="likereview-{{ review_like.id }}" class="card mb-3" style="background-color: #222; border-left: transparent; border-right:
+                             transparent; border-bottom-color: #5f5d5b; border-top-color:#5f5d5b">
+                            <div class="row no-gutters">
+                                <div class="col-md-4">
+                                    <a href="{% url 'films:detail' id=review_like.review.film.id %}">
+                                        <img style="margin-top: 20px; margin-bottom: 20px"
+                                             src="{{ review_like.review.film.poster.url }}"
+                                             class="card-img" alt="...">
+                                    </a>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <a href="{% url 'films:detail' id=review_like.review.film.id %}"><h5
+                                                class="card-title">{{ review_like.review.film.title }}</h5></a>
+                                        <p><i style="margin-right:5px; color: #fddb3a "
+                                              class="fas fa-star"></i>{{ review_like.review.rating }}<i
+                                                style="margin-left: 10px; margin-right: 5px">
+                                            {% if user.username == review_like.review.author.username %}
+                                                <a href="{% url 'profile:profile' city='watched' username=review_like.review.author.username %}"><i>{{ review_like.review.author.username }}</i></a>
+                                            {% else %}
+                                                <a href="{% url 'other_profile' username=review_like.review.author.username %}">{{ review_like.review.author.username }}</a>
+                                            {% endif %}
+                                        </i><img
+                                                style="height: 25px;width: 25px; object-fit: cover; border-radius: 100%"
+                                                src="{{ review_like.review.author.profile.picture.url }}" alt=""></p>
+                                        <a href="{% url 'profile:detail' id=review_like.review.id %}"><p
+                                                class="card-text">{{ review_like.review.body|truncatechars:100 }}</p>
+                                        </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+                <div class="col-md-4" style="display: inline">
+                    <p style="text-align: center">Lists</p>
+                    <hr style="border: #3f3f3f 1px solid">
+                    {% for list_films, list_name in liked_list_films %}
+                        <div id="card-{{ list_name.id }}" class="card mb-3" style="width: 20rem; border-color: #222">
+                            <div class="card-body" style="background-color: #222;">
+
+
+                                <div class="row">
+                                    {% if list_films %}
+                                        <a href="{% url 'profile:list detail' id=list_name.id %}">
+                                            <div class="row no-gutters"
+                                                 style="background-color: #0b0b0b; margin-left: 35px">
+                                                {% for filmlist in list_films %}
+
+                                                    <div class="col-md-4">
+                                                        <img src="{{ filmlist.film.poster.url }}"
+                                                             class="card-img"
+                                                             alt="...">
+                                                    </div>
+
+                                                {% endfor %}
+                                            </div>
+                                        </a>
+                                    {% endif %}
+                                </div>
+
+
+                                <br>
+                                <a href="{% url 'profile:list detail' id=list_name.id %}"><p
+                                        style="margin-left: 20px; margin-top: -20px">{{ list_name.list_name }}</p></a>
+                                <p style="margin-left: 20px; margin-top: -10px">created by
+                                    <i>
+                                        {% if user.username == list_name.user.username %}
+                                            <a href="{% url 'profile:profile' city='watched' username=list_name.user.username %}"><i>{{ list_name.user.username }}</i></a>
+                                        {% else %}
+                                            <a href="{% url 'other_profile' username=list_name.user.username %}">{{ list_name.user.username }}</a>
+                                        {% endif %}
+                                    </i>
+                                    <img
+                                            src="{{ list_name.user.profile.picture.url }}"
+                                            style="height: 30px;width: 30px; object-fit: cover;border-radius: 100%; margin-left: 5px"
+                                            alt="">
+                                </p>
+
+
+                            </div>
+                        </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("myBtn");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks the button, open the modal
+        btn.onclick = function () {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+
+    {#    <script>#}
+    {#        function Created() {#}
+    {#            $('#create-list-form').css('display', 'none')#}
+    {#            $('#create-click').css('display', 'inline')#}
+    {#            $('#lists-text').css('display', 'inline')#}
+    {#            $('#cont1').css('opacity', '0%')#}
+    {#            $('#films-cont').css('opacity', '0%')#}
+    {#            $('#navbar-base').css('opacity', '0%')#}
+    {#        }#}
+    {##}
+    {#        function PopUpForm() {#}
+    {#            $('#create-list-form').css('display', 'block')#}
+    {#            $('#create-click').css('display', 'none')#}
+    {#            $('#lists-text').css('display', 'none')#}
+    {#            $('#cont1').css('opacity', '10%')#}
+    {#            $('#films-cont').css('opacity', '10%')#}
+    {#            $('#navbar-base').css('opacity', '10%')#}
+    {##}
+    {##}
+    {#        }#}
+    {#    </script>#}
+
+    <script>
+        $(document).ready(function () {
+            openCity("{{ city }}");
+        });
+
+        function openCity(cityName) {
+            console.log(cityName);
+            var i;
+            var x = document.getElementsByClassName("city");
+            for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";
+            }
+            document.getElementById(cityName).style.display = "block";
+        }
+    </script>
+
+    <script>
+        function DeleteReview(review_id) {
+
+            bootbox.confirm({
+                title: "Delete Review?",
+                message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+                buttons: {
+                    cancel: {
+                        label: '<i class="fa fa-times"></i> Cancel'
+                    },
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'profile:delete review ajax' %}",
+                            data: {
+                                review_id: review_id,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data['success']) {
+
+                                    $("#review-card-" + review_id).remove()
+
+
+                                }
+
+
+                            }
+                        });
+                    } else {
+                        bootbox.alert({
+                            message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                        });
+                    }
+                }
+            });
+
+        }
+    </script>
+    <script>
+
+        function RemoveWatchlist(film_id) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:watchlist ajax' %}",
+                data: {
+                    film_id: film_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        $("#movie-card-" + film_id).remove();
+
+
+                    }
+
+                }
+            });
+        }
+
+    </script>
+    <script>
+        function DeleteList(name_id) {
+
+            bootbox.confirm({
+                title: "Delete List?",
+                message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+                buttons: {
+                    cancel: {
+                        label: '<i class="fa fa-times"></i> Cancel'
+                    },
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        console.log("calisti");
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'profile:delete_list_ajax' %}",
+                            data: {
+                                name_id: name_id,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data['success']) {
+
+                                    $("#card-" + name_id).remove()
+                                    $("#hr-" + name_id).remove()
+
+
+                                }
+
+
+                            }
+                        });
+                    } else {
+                        bootbox.alert({
+                            message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                        });
+                    }
+                }
+            });
+
+        }
+    </script>
+
+
+
+
+{% endblock %}

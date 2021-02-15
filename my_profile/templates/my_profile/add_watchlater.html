@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class="add-watchlater">
+      <h2>Watch Later</h2>
+      <form class="site-form" action="{% url 'profile:watch later' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{form}}
+        <input type="submit" value="Add">
+
+      </form>
+  </div>
+{% endblock %}

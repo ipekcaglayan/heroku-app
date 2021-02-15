@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block body %}
+    <h2>Edit your {{ review.title }} Review</h2>
+    <div class="edited">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Update Review</button>
+        </form>
+    </div>
+{% endblock %}

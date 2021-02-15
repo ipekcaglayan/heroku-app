@@ -1,0 +1,661 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'film_detail.css' %}?v1.5">
+    <title>{{ detailed_film.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Neuton:wght@300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="margin-top: 200px">
+        <div class="row">
+            <div class="col-md-3">
+                <img src="{{ detailed_film.poster.url }}" style="max-width: 360px" alt="">
+            </div>
+            <div class=" col-md-6" style="margin-left: 130px">
+                <p style="display: inline; font-size: 30px">{{ detailed_film.title }}  </p>
+                <p style="display: inline; margin-left: 25px"> {% if rating_num %}
+                    <i style="margin-right:10px; color: #fddb3a; font-size: 22px" class="fas fa-star"></i>
+                    <strong style="font-size: 22px">{{ avg_rating }}</strong> /10  ({{ rating_num }})
+                {% endif %}</p>
+                <br> <br>
+                <p>{{ detailed_film.body }}</p>
+                <br>
+                <div class="inline-genres">
+                    {% for genre in genres %}
+                        <a class="btn-sm mr-2 btn-secondary"
+                           href="{% url 'genre_detail' id=genre.id %}"> {{ genre.name }}</a>
+                    {% endfor %}
+                </div>
+                <br>
+
+
+                <div class="inline-buttons">
+                    {% if user.is_authenticated %}
+                        <div class="watched-btn" style="display: inline">
+                            <a
+                                    {% if reviewed %}
+                                        href="{% url 'profile:detail' id=review.id %}"
+                                        style=" color: #0c8212"
+                                    {% else %}
+
+                                        {% if added %}
+                                        id="watched-eye"
+                                        href="javascript:void();"
+                                        style=" color: #0c8212"
+                                        onclick="Watched({{ detailed_film.id }});"
+                                        {% else %}
+                                        href="javascript:void();"
+                                        id="watched-eye"
+                                        style=" color: #726f6f "
+                                        onclick="Watched({{ detailed_film.id }});"
+                                        {% endif %}
+                                    {% endif %}
+
+
+                            >
+                                <div style="margin-right: 5px" class="fa-stack fa-2x"><i class="fas fa-eye fa-2x"></i>
+                                </div>
+                            </a>
+
+                        </div>
+                        <div class="like-btn" style="display: inline">
+                            <a href="javascript:void();" id="like"
+                                    {% if liked %}
+                               style="margin-right: 5px; color: #7c071b"
+                                    {% else %}
+                               style="margin-right: 10px; color: #726f6f"
+                                    {% endif %}
+                               onclick="Like({{ detailed_film.id }}, {{ like_number }});">
+                                <div class="fa-stack fa-2x" style="margin-right: 10px">
+                                    <i class="fa fa-heart fa-stack-2x"></i>
+                                    <div id="like-number" style="font-family: 'Libre Baskerville', serif;"
+                                         class="fa-stack-1x text-body">
+                                        {{ like_number }}</div>
+                                </div>
+                            </a>
+
+                        </div>
+                        <div class="watchlist-btn" style="display: inline">
+
+                            <a href="javascript:void();" id="watchlist"
+                                    {% if added_watchlist %}
+                               style="color: #5fdde5"
+                                    {% else %}
+                               style="color: #726f6f"
+                                    {% endif %}
+                               onclick="WatchLater({{ detailed_film.id }});">
+                                <div class="fa-stack fa-2x">
+                                    <i
+                                            class="fas fa-plus fa-2x"></i>
+                                </div>
+                            </a>
+
+
+                        </div>
+                        <p>
+                            {% if review %}
+                                <h6 class="text-muted" id="watched-text"
+                                    style="display: inline; font-size: 15px;margin-right: 5px ">
+                                    Reviewed</h6>
+                            {% else %}
+                                {% if added %}
+                                    <h6 class="text-muted" id="watched-text"
+                                        style="display: inline; margin-right: 20px; margin-left: 7px">Watched</h6>
+                                {% else %}
+                                    <h6 class="text-muted" id="watched-text"
+                                        style="display: inline; font-size: 15px; margin-right: 35px; margin-left: 15px">
+                                        Watch</h6>
+                                {% endif %}
+                            {% endif %}
+
+
+                        {% if liked %}
+                            <h6 id="like-text"
+                                style="display: inline; font-size: 15px; margin-right: 20px; margin-left: 16px">
+                                Liked</h6>
+                        {% else %}
+                            <h6 id="like-text"
+                                style="display: inline; font-size: 15px; margin-right: 20px; margin-left: 16px">
+                                Like</h6>
+                        {% endif %}
+
+                        <h6 style="display: inline; font-size: 15px; margin-left: 16px ">
+                            Watchlist</h6>
+                        </p>
+
+                        <p>
+                            {% if reviewed %}
+                                <button style="background-color: transparent; border: none" id="myBtn-form"
+                                        onclick="AddReview()" class="btn btn-dark"><i class="far fa-edit fa-2x"></i>Add
+                                    Another
+                                    Review
+                                </button>
+                            {% else %}
+                                <button id="myBtn-form" onclick="AddReview()" class="btn btn-outline-light"><i
+                                        class="far fa-edit fa-2x"></i>Add Review
+                                </button>
+                            {% endif %}
+
+
+                            <!-- The Modal -->
+                        <div id="myModal-form" class="modal-form">
+
+                            <!-- Modal content -->
+                            <div class="modal-content-form">
+                                <span class="close-form">&times;</span>
+                                <h3 style="text-align: center; margin-top: 20px">Add a review...</h3>
+                                <form id="add-review-form" class="add-review-form"
+                                      action="{% url 'profile:add review' id=detailed_film.id %}" method="post"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <textarea
+                                            style="margin-top:30px;background-color: #99a598; width: 450px; min-height: 200px; margin-left: 75px"
+                                            autocomplete="off" placeholder="Add a review..." id="text-input" type="text"
+                                            name="body"></textarea>
+                                    <input id="rating-val" type="text" style="display: none" name="rating">
+
+                                    <div style="margin-top: 30px" class='rating-stars text-center'>
+                                        <ul id='stars'>
+                                            <li class='star' title='Poor' data-value='1'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='Fair' data-value='2'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='Good' data-value='3'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='Excellent' data-value='4'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='5'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='6'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='7'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='8'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='9'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+                                            <li class='star' title='WOW!!!' data-value='10'>
+                                                <i class='fa fa-star fa-fw'></i>
+                                            </li>
+
+
+                                        </ul>
+                                    </div>
+                                    <input style="margin-left: 220px" onclick="FormSubmitted()" type="submit"
+                                           class="btn btn-outline-light"
+                                           value="Add Review">
+
+                                </form>
+                            </div>
+
+                        </div>
+
+
+
+
+
+                        </p>
+                        <a href="{% url 'profile:content_based_recommender' id=detailed_film.id %}"
+                           class="btn btn-outline-light" style="width: 250px"> You might like</a>
+
+
+
+                    {% else %}
+
+                        <a
+                                id="watched-eye"
+                                href="{% url 'profile:watchedAjax' %}"
+                                style="margin-right: 25px; color: #726f6f; display: inline"
+
+
+                        ><i class="fas fa-eye fa-3x"></i></a>
+
+
+
+                        <a id="like"
+                           href="{% url 'profile:likeAjax' %}"
+                           style="margin-right: 25px; color: #726f6f; display: inline"
+                        ><i class="fas fa-heart fa-3x"></i></a>
+
+
+                        <a id="watchlist"
+                           style="color: #726f6f; display: inline"
+                           href="{% url 'profile:watchLaterAjax' %}"
+                        ><i
+                                class="fas fa-plus fa-3x"></i></a>
+
+
+
+
+                        <p>
+
+                        <h6 class="text-muted" id="watched-text"
+                            style="display: inline; font-size: 15px; margin-right: 20px; margin-left: 5px">
+                            Watch</h6>
+                        <h6 id="like-text"
+                            style="display: inline; font-size: 15px; margin-right: 20px; margin-left: 14px">Like</h6>
+                        <h6 style="display: inline; font-size: 15px; margin-right: 20px; margin-left: 5px ">
+                            Watchlist</h6>
+
+                        </p>
+
+
+
+                        <form id="add-review-form" style="display: none" class="add-review-form"
+                              action="{% url 'profile:add review' id=detailed_film.id %}" method="post"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <input onclick="FormSubmitted()" type="submit" class="btn-outline-primary"
+                                   value="Add Review">
+
+                        </form>
+
+                    {% endif %}
+                </div>
+                {% if author_num > 6 %}
+                    <a style="margin-top: 10px; width: 250px" class="btn btn-outline-light"
+                       href="{% url 'profile:recommend' id=detailed_film.id %}"> Recommended Movies</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <br> <br> <br>
+    {% if film_reviews %}
+        <div id="reviews-container" class="container"
+             style="max-width: 1500px; margin-top: 100px; margin-bottom: 100px">
+            <h3 style="text-align: center">Reviews</h3> <br>
+            <div class="row">
+                {% if user.is_authenticated %}
+                    {% for review,review_liked in reviews_with_likes %}
+
+                        <div id="review-cell" class="col-md-6">
+                            <div id="card-{{ review.id }}" class="card mb-5 mr-5"
+                                 style="max-width: 750px; background-color: #222; border-left: transparent; border-right:
+                             transparent; border-bottom-color: #5f5d5b; border-top-color:#5f5d5b">
+                                <div class="card-body">
+                                            <span class="date"><span
+                                                    class="icon-calendar"></span> {{ review.date }} </span>
+                                    <h5 class="card-title"><a href="{% url 'films:detail' id=review.film.id %}"
+                                                              class="film">{{ review.film.title }}</a></h5>
+                                    <h6 class="text-muted">
+                                        {% if review.rating %}
+                                            <i style="margin-right:10px; color: #fddb3a " class="fas fa-star"></i>
+                                            {{ review.rating }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="card-text"><a
+                                            href="{% url 'profile:detail' id=review.id %}">{{ review.body|truncatechars:200 }}</a>
+                                    </p>
+                                    <p class="card-text"><small class="text-muted">
+
+                                        {% if user.is_authenticated %}
+                                            <div class="like-btn" style="display: inline; margin-right: 10px">
+                                                <a href="javascript:void();" id="review-like-{{ review.id }}"
+                                                        {% if review_liked %}
+                                                   style="color: #7c071b;display: inline"
+                                                        {% else %}
+                                                   style="color: #726f6f;display:inline;"
+                                                        {% endif %}
+                                                   onclick="ReviewLike({{ review.id }});"><i
+                                                        class="fas fa-heart fa-2x"></i></a>
+                                            </div>
+
+                                        {% endif %}
+                                        {% if user == review.author %}
+                                            <a style="margin-right: 10px" href="javascript:void();"
+                                               onclick="DeleteReview({{ review.id }});"><i
+                                                    class="fas fa-trash-alt fa-2x"></i></a>
+                                        {% endif %}
+                                        reviewed by
+                                        {% if user.username == review.author.username %}
+                                            <a href="{% url 'profile:profile' city='watched' username=review.author.username %}">{{ review.author }}</a>
+                                        {% else %}
+                                            <a href="{% url 'other_profile' username=review.author.username %}">{{ review.author }}</a>
+                                        {% endif %}
+                                    </small>
+                                        <img src="{{ review.author.profile.picture.url }}"
+                                             style="width: 8%; border-radius: 100%; margin-left: 7px" alt="">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    {% endfor %}
+                {% else %}
+                    {% for review in film_reviews %}
+
+                        <div id="review-cell" class="col-md-6">
+                            <div id="card-{{ review.id }}" class="card mb-5 mr-5"
+                                 style="max-width: 750px; background-color: #222; border-left: transparent; border-right:
+                             transparent; border-bottom-color: #5f5d5b; border-top-color:#5f5d5b">
+                                <div class="card-body">
+                                            <span class="date"><span
+                                                    class="icon-calendar"></span> {{ review.date }} </span>
+                                    <h5 class="card-title"><a href="{% url 'films:detail' id=review.film.id %}"
+                                                              class="film">{{ review.film.title }}</a></h5>
+                                    <h6 class="text-muted">
+                                        {% if review.rating %}
+                                            <i style="margin-right:10px; color: #fddb3a " class="fas fa-star"></i>
+                                            {{ review.rating }}
+                                        {% endif %}
+                                    </h6>
+                                    <p class="card-text"><a
+                                            href="{% url 'profile:detail' id=review.id %}">{{ review.body|truncatechars:200 }}</a>
+                                    </p>
+                                    <p class="card-text"><small class="text-muted">
+                                        <div class="like-btn" style="display: inline; margin-right: 10px">
+                                            <a href="{% url 'profile:like review ajax' %}"
+                                               id="review-like-{{ review.id }}"
+                                               style="color: #726f6f;display:inline;"
+                                            ><i
+                                                    class="fas fa-heart fa-2x"></i></a>
+                                        </div>
+                                        reviewed
+                                        by <a
+                                            href="{% url 'other_profile' username=review.author.username %}">{{ review.author }}</a>
+                                    </small>
+                                        <img src="{{ review.author.profile.picture.url }}"
+                                             style="width: 8%; border-radius: 100%; margin-left: 7px" alt="">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    {% endfor %}
+                {% endif %}
+
+
+            </div>
+        </div>
+
+
+    {% endif %}
+    <br>
+
+    <script>
+        function WatchLater(film_id) {
+            console.log("ipek");
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:watchLaterAjax' %}",
+                data: {
+                    film_id: film_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        console.log("success");
+                        $("#watchlist").css('color', '#5fdde5')
+
+
+                    } else {
+                        $("#watchlist").css('color', '#726f6f')
+
+
+                    }
+
+
+                }
+            });
+        }
+
+        function Watched(film_id) {
+            console.log("calisiyor mu");
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:watchedAjax' %}",
+                data: {
+                    film_id: film_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        console.log("alooo");
+                        $("#watched-eye").css('color', '#0c8212')
+                        $("#watched-eye").css('margin-left', '8px')
+                        $("#watched-text").html("Watched")
+
+
+                    } else {
+                        console.log("xxxxx");
+                        $("#watched-eye").css('color', '#726f6f')
+                        $("#watched-eye").css('margin-left', '3px')
+                        $("#watched-text").html("Watch")
+
+
+                    }
+
+
+                }
+            });
+        }
+
+
+        function Like(film_id, like_number) {
+            console.log("ipek");
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:likeAjax' %}",
+                data: {
+                    film_id: film_id,
+                    like_number: like_number,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        like_number++
+                        $("#like").css('color', '#7c071b')
+                        $("#like-text").html("Liked")
+                        $("#like-number").html(like_number)
+
+
+                    } else {
+                        --like_number
+                        $("#like").css('color', '#726f6f')
+                        $("#like-text").html("Like")
+                        $("#like-number").html(like_number)
+
+
+                    }
+
+
+                }
+            });
+        }
+    </script>
+    <script>
+        function DeleteReview(review_id) {
+            console.log("xxxx");
+
+            bootbox.confirm({
+                title: "Delete Review?",
+                message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+                buttons: {
+                    cancel: {
+                        label: '<i class="fa fa-times"></i> Cancel'
+                    },
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        console.log("calisti");
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'profile:delete review ajax' %}",
+                            data: {
+                                review_id: review_id,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data['success']) {
+
+                                    $("#card-" + review_id).remove()
+
+
+                                }
+
+
+                            }
+                        });
+                    } else {
+                        bootbox.alert({
+                            message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                        });
+                    }
+                }
+            });
+
+        }
+    </script>
+    <script>
+        function AddReview() {
+            $('#add-click').css('display', 'none');
+            $('#add-review-form').css('display', 'block');
+
+        }
+
+        function FormSubmitted() {
+            $('#add-click').css('display', 'block');
+            $('#add-click').html("Add Another Review");
+            $('#add-review-form').css('display', 'none');
+
+
+        }
+    </script>
+    <script>
+        function ReviewLike(review_id) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:like review ajax' %}",
+                data: {
+                    review_id: review_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        $("#review-like-" + review_id).css('color', '#7c071b')
+
+
+                    } else {
+                        $("#review-like-" + review_id).css('color', '#726f6f')
+
+
+                    }
+
+
+                }
+            });
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+
+            /* 1. Visualizing things on Hover - See next part for action on click */
+            $('#stars li').on('mouseover', function () {
+                var onStar = parseInt($(this).data('value'), 10); // The star currently mouse on
+
+                // Now highlight all the stars that's not after the current hovered star
+                $(this).parent().children('li.star').each(function (e) {
+                    if (e < onStar) {
+                        $(this).addClass('hover');
+                    } else {
+                        $(this).removeClass('hover');
+                    }
+                });
+
+            }).on('mouseout', function () {
+                $(this).parent().children('li.star').each(function (e) {
+                    $(this).removeClass('hover');
+                });
+            });
+
+
+            /* 2. Action to perform on click */
+            $('#stars li').on('click', function () {
+
+                var onStar = parseInt($(this).data('value'), 10); // The star currently selected
+                var stars = $(this).parent().children('li.star');
+
+                for (i = 0; i < stars.length; i++) {
+                    $(stars[i]).removeClass('selected');
+                }
+
+                for (i = 0; i < onStar; i++) {
+                    $(stars[i]).addClass('selected');
+                }
+
+                // JUST RESPONSE (Not needed)
+                var ratingValue = parseInt($('#stars li.selected').last().data('value'), 10);
+                var msg = "";
+                document.getElementById("rating-val").value = ratingValue;
+
+                if (ratingValue > 1) {
+                    msg = "Thanks! You rated this " + ratingValue + " stars.";
+                } else {
+                    msg = "We will improve ourselves. You rated this " + ratingValue + " stars.";
+                }
+                responseMessage(msg);
+
+            });
+
+
+        });
+    </script>
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal-form");
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("myBtn-form");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close-form")[0];
+
+        // When the user clicks on the button, open the modal
+        btn.onclick = function () {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+{% endblock %}

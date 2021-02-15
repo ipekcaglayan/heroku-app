@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block head %}
+    <title>Recommended Movies</title>
+    <link rel="stylesheet" href="{% static 'movies2.css' %}?v1.1">
+{% endblock %}
+{% block body %}
+    <div class="container" style="margin-top: 250px; margin-bottom: 200px">
+        <h2> Similar Movies to <strong>"{{ similar_to.title }}"</strong></h2> <br>
+        <div class="row" style="margin-bottom: 100px">
+            {% for film in recommended_films %}
+                <div class="col-md-3" style="margin-bottom: 20px">
+                    <a href="{% url 'films:detail' id=film.id %}">
+                        <div class="card card-flip h-100" style="border: #00CCFF; background-color: #0b0b0b">
+                            <div class="card-front " style="background-color: #0b0b0b">
+                                <div class="card-body">
+                                    <img src="{{ film.poster.url }}" alt="" style="max-width: 210px">
+                                </div>
+                            </div>
+                            <div class="card-back" style="background-color: #0b0b0b">
+                                <div class="card-body" style="background-color: #0b0b0b">
+                                    <h3 class="card-title">{{ film.title }}</h3>
+                                    <p class="card-text">{{ film.body|truncatechars:200 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <h2>People Who Like <strong>{{ similar_to }}</strong></h2>
+        <div class="row" style="margin-top: 50px">
+            {% for film_like in film_likes %}
+                <div class="col-md-3">
+                    <div class="card" style="background-color: #3f3f3f; border-color: transparent; margin-bottom: 50px">
+                        <img class="card-img-top" src="{{ film_like.user.profile.picture.url }}"
+                             style="height: 150px;width: 150px; object-fit: cover;border-radius: 100%; margin-left: 50px; margin-top: 20px"
+                             alt="Card image cap">
+                        <div class="card-body" style="background-color: #3f3f3f">
+                            <a href="{% url 'other_profile' username=film_like.user.username %}"
+                               class="btn btn-primary">{{ film_like.user.username }}</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}

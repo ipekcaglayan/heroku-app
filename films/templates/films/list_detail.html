@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block head %}
+    <title>{{ list_name.list_name }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.0/css/select2.min.css">
+    <link rel="stylesheet" href="{% static 'list_detail.css' %}?v1.2">
+{% endblock %}
+{% block body %}
+    <div class="container" style="margin-top: 250px">
+        <p>
+        <h2 style="display: inline; font-size: 75px">{{ list_name.list_name }} </h2>
+        {% if user.is_authenticated %}
+            <div class="like-btn" style="display: inline">
+                <div id="list-like"
+                        {% if liked %}
+                     style="color: #7c071b;display: inline"
+                        {% else %}
+                     style="color: #726f6f;display:inline;"
+                        {% endif %}
+                     onclick="ListLike({{ list_name.id }});"><i
+                        class="fas fa-heart fa-2x"></i></div>
+            </div>
+            {% if user.username == list_name.user.username %}
+                <div
+                        style="display: inline; color: #828282; margin-left: 10px; "
+                        onclick="DeleteListDetail({{ list_name.id }});"><i
+                        class="fas fa-trash-alt fa-2x"></i></div>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'profile:like list ajax' %}" style="display: inline;color: #726f6f">
+                <i
+                        class="fas fa-heart fa-2x"></i>
+            </a>
+
+        {% endif %}
+        </p>
+        <p><i class="fas fa-pencil-alt mr-2"></i>created by <i><strong>
+            {% if user.is_authenticated %}
+                {% if user.username == list_name.user.username %}
+                    <a href="{% url 'profile:profile' city='watched' username=list_name.user.username %}">{{ list_name.user }}</a>
+                {% else %}
+                    <a href="{% url 'other_profile' username=list_name.user %}"> {{ list_name.user }}</a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'other_profile' username=list_name.user %}"> {{ list_name.user }}</a>
+            {% endif %}
+        </strong></i></p>
+        {% if last_update %}
+            <p class="text-muted"><i class="fas fa-edit mr-2"></i>Last Update: {{ last_update }}</p>
+
+        {% endif %}
+
+        <br>
+        <p>{{ list_name.body }}</p> <br> <br>
+        {% if user.is_authenticated %}
+            {% if user.username == list_name.user.username %}
+                <form style="margin-bottom: 50px " class="site-form"
+                      action="{% url 'profile:film to list' id=list_name.id %}" method="post"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <select style="width: 50%" class="js-example-basic-single" name="film">
+                        {% for movie in movies %}
+                            <option value="{{ movie.id }}">{{ movie.title }}</option>
+
+                        {% endfor %}
+                    </select>
+                    <input style=" margin-left: 50px" type="submit" class="btn btn-outline-light" value="Add Film">
+
+                </form>
+            {% endif %}
+        {% endif %}
+        <div class="row" style="margin-bottom: 200px; margin-top: 80px">
+
+            {% for list in list_films %}
+
+
+                <div id="movie-card-{{ list.film.id }}" class="col-md-3" style="margin-bottom: 20px">
+                    <div class="card card-flip h-100" style="border: #00CCFF; background-color: #0b0b0b">
+                        <div class="card-front " style="background-color: #0b0b0b">
+                            <div class="card-body">
+                                <img src="{{ list.film.poster.url }}" alt="" style="max-width: 210px">
+                            </div>
+                        </div>
+                        <div class="card-back" style="background-color: #0b0b0b">
+                            <div class="card-body" style="background-color: #0b0b0b">
+                                <a href="{% url 'films:detail' id=list.film.id %}"><h3
+                                        class="card-title">{{ list.film.title }} </h3></a>
+                                <p class="card-text"><a
+                                        href="{% url 'films:detail' id=list.film.id %}">{{ list.film.body|truncatechars:100 }}</a>
+                                </p>
+                                {% if user.is_authenticated %}
+                                    {% if user.username == list_name.user.username %}
+                                        <form id="form-watch-{{ list.film.id }}" method='post'
+                                              style="padding-left: 40px;">{% csrf_token %}
+                                            <div
+                                                    style="background-color: transparent; border: transparent;cursor: pointer; position: absolute; bottom: 50px; left: 100px "
+                                                    onclick="RemoveList({{ list.film.id }})">
+                                                <i class="fas fa-ban fa-3x"></i>
+                                            </div>
+                                            <p class="text-muted" style="position: absolute; bottom: 5px; left: 95px">
+                                                Remove</p>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            {% endfor %}
+
+        </div>
+    </div>
+    <script>
+
+        function RemoveList(film_id) {
+            console.log("hsjrsyrsjssuds");
+            var list_name = '{{ list_name.id }}'
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:film_list_ajax' %}",
+                data: {
+                    film_id: film_id,
+                    list_name: list_name,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        $("#movie-card-" + film_id).remove();
+
+
+                    }
+
+                }
+            });
+        }
+
+    </script>
+
+    <script>
+        function DeleteListDetail(name_id) {
+
+            bootbox.confirm({
+                title: "Delete List?",
+                message: '<p style="color: #0b0b0b; text-align: center"> Do you really want to delete record? This cannot be undone.</p>',
+                buttons: {
+                    cancel: {
+                        label: '<i class="fa fa-times"></i> Cancel'
+                    },
+                    confirm: {
+                        label: '<i class="fa fa-check"></i> Confirm'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        console.log("calisti");
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'profile:delete_list_ajax' %}",
+                            data: {
+                                name_id: name_id,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data['success']) {
+
+                                    window.location.href = '{% url 'profile:profile' city='lists' username=logged_user %}'
+
+
+                                }
+
+
+                            }
+                        });
+                    } else {
+                        bootbox.alert({
+                            message: '<p style="color: #0b0b0b; text-align: center; margin-top: 50px">Record not deleted.</p>'
+                        });
+                    }
+                }
+            });
+
+        }
+    </script>
+    <script>
+        function ListLike(list_name_id) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'profile:like list ajax' %}",
+                data: {
+                    list_name_id: list_name_id,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    if (data['success']) {
+                        $("#list-like").css('color', '#7c071b')
+
+
+                    } else {
+                        $("#list-like").css('color', '#726f6f')
+
+
+                    }
+
+
+                }
+            });
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('.js-example-basic-single').select2();
+        });
+    </script>
+
+
+
+{% endblock %}
